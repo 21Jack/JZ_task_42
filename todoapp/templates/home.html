@@ -7,9 +7,17 @@
     <div class="col-md-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>我的任务</h2>
-            <a href="{{ url_for('new_task') }}" class="btn btn-primary">
-                <i class="bi bi-plus"></i> 新建任务
-            </a>
+            <div>
+                <form action="{{ url_for('main.search') }}" method="GET" class="d-inline me-2">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="搜索任务..." value="{{ search_query|default('') }}">
+                        <button class="btn btn-outline-secondary" type="submit">搜索</button>
+                    </div>
+                </form>
+                <a href="{{ url_for('main.new_task') }}" class="btn btn-primary">
+                    新建任务
+                </a>
+            </div>
         </div>
 
         <!-- 任务统计 -->
@@ -57,9 +65,17 @@
                         }} text-white">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0">{{ task.title }}</h5>
-                                <span class="badge bg-light text-dark">
-                                    {{ task.status }}
-                                </span>
+                                <div>
+                                    <span class="badge bg-{{ 
+                                        'secondary' if task.priority == 'low' else 
+                                        'light text-dark' if task.priority == 'medium' else 'danger' 
+                                    }} me-2">
+                                        {{ task.get_priority_display() }}
+                                    </span>
+                                    <span class="badge bg-light text-dark">
+                                        {{ task.get_status_display() }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         <div class="card-body">
@@ -78,17 +94,17 @@
                         <div class="card-footer bg-light">
                             <div class="d-flex justify-content-between">
                                 <div class="btn-group" role="group">
-                                    <a href="{{ url_for('task', task_id=task.id) }}" class="btn btn-sm btn-primary">查看详情</a>
-                                    <a href="{{ url_for('update_task', task_id=task.id) }}" class="btn btn-sm btn-secondary">编辑</a>
+                                    <a href="{{ url_for('main.task', task_id=task.id) }}" class="btn btn-sm btn-primary">查看详情</a>
+                                    <a href="{{ url_for('main.update_task', task_id=task.id) }}" class="btn btn-sm btn-secondary">编辑</a>
                                 </div>
                                 <div class="btn-group" role="group">
                                     {% if task.status == 'pending' %}
-                                        <a href="{{ url_for('update_task_status', task_id=task.id, status='in_progress') }}" class="btn btn-sm btn-warning">开始</a>
+                                        <a href="{{ url_for('main.update_task_status', task_id=task.id, status='in_progress') }}" class="btn btn-sm btn-warning">开始</a>
                                     {% elif task.status == 'in_progress' %}
-                                        <a href="{{ url_for('update_task_status', task_id=task.id, status='completed') }}" class="btn btn-sm btn-success">完成</a>
-                                        <a href="{{ url_for('update_task_status', task_id=task.id, status='pending') }}" class="btn btn-sm btn-info">重置</a>
+                                        <a href="{{ url_for('main.update_task_status', task_id=task.id, status='completed') }}" class="btn btn-sm btn-success">完成</a>
+                                        <a href="{{ url_for('main.update_task_status', task_id=task.id, status='pending') }}" class="btn btn-sm btn-info">重置</a>
                                     {% else %}
-                                        <a href="{{ url_for('update_task_status', task_id=task.id, status='pending') }}" class="btn btn-sm btn-info">重新开始</a>
+                                        <a href="{{ url_for('main.update_task_status', task_id=task.id, status='pending') }}" class="btn btn-sm btn-info">重新开始</a>
                                     {% endif %}
                                     <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ task.id }}">删除</button>
                                 </div>
@@ -109,7 +125,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                                    <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST">
+                                    <form action="{{ url_for('main.delete_task', task_id=task.id) }}" method="POST">
                                         <button type="submit" class="btn btn-danger">删除</button>
                                     </form>
                                 </div>
@@ -118,6 +134,54 @@
                     </div>
                 {% endfor %}
             </div>
+            
+            <!-- 分页 -->
+            {% if pagination and pagination.pages > 1 %}
+            <nav aria-label="任务分页" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if pagination.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.home', page=pagination.prev_num) }}">上一页</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">上一页</span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == pagination.page %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('main.home', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.home', page=pagination.next_num) }}">下一页</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">下一页</span>
+                        </li>
+                    {% endif %}
+                </ul>
+                <p class="text-center text-muted">
+                    共 {{ pagination.total }} 条任务，当前第 {{ pagination.page }} 页，共 {{ pagination.pages }} 页
+                </p>
+            </nav>
+            {% endif %}
         {% else %}
             <div class="text-center py-5">
                 <div class="alert alert-info" role="alert">
@@ -132,7 +196,6 @@
 
 {% block scripts %}
 <script>
-    // 设置当前时间用于截止日期判断
     window.current_time = new Date();
 </script>
 {% endblock %}

@@ -14,7 +14,7 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container">
-                <a class="navbar-brand" href="{{ url_for('home') }}">TodoList</a>
+                <a class="navbar-brand" href="{{ url_for('main.home') }}">TodoList</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -22,10 +22,10 @@
                     <ul class="navbar-nav me-auto">
                         {% if current_user.is_authenticated %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('home') }}">我的任务</a>
+                                <a class="nav-link" href="{{ url_for('main.home') }}">我的任务</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('new_task') }}">新建任务</a>
+                                <a class="nav-link" href="{{ url_for('main.new_task') }}">新建任务</a>
                             </li>
                         {% endif %}
                     </ul>
@@ -36,17 +36,17 @@
                                     {{ current_user.username }}
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="{{ url_for('account') }}">个人资料</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('main.account') }}">个人资料</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('logout') }}">注销</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">注销</a></li>
                                 </ul>
                             </li>
                         {% else %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('login') }}">登录</a>
+                                <a class="nav-link" href="{{ url_for('auth.login') }}">登录</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('register') }}">注册</a>
+                                <a class="nav-link" href="{{ url_for('auth.register') }}">注册</a>
                             </li>
                         {% endif %}
                     </ul>
