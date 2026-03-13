@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, DateTimeLocalField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from todoapp.models import User
 from datetime import datetime
@@ -9,7 +9,7 @@ class RegistrationForm(FlaskForm):
     """用户注册表单"""
     username = StringField('用户名', validators=[DataRequired(), Length(min=2, max=20)])
     email = StringField('邮箱', validators=[DataRequired(), Email()])
-    password = PasswordField('密码', validators=[DataRequired()])
+    password = PasswordField('密码', validators=[DataRequired(), Length(min=8)])
     confirm_password = PasswordField('确认密码', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('注册')
 
@@ -23,6 +23,14 @@ class RegistrationForm(FlaskForm):
         if user:
             raise ValidationError('该邮箱已被注册，请使用其他邮箱。')
 
+    def validate_password(self, password):
+        if not re.search(r'[A-Z]', password.data):
+            raise ValidationError('密码必须包含至少一个大写字母。')
+        if not re.search(r'[a-z]', password.data):
+            raise ValidationError('密码必须包含至少一个小写字母。')
+        if not re.search(r'[0-9]', password.data):
+            raise ValidationError('密码必须包含至少一个数字。')
+
 class LoginForm(FlaskForm):
     """用户登录表单"""
     email = StringField('邮箱', validators=[DataRequired(), Email()])
@@ -34,16 +42,5 @@ class TaskForm(FlaskForm):
     """任务表单，用于创建和更新任务"""
     title = StringField('标题', validators=[DataRequired(), Length(min=1, max=100)])
     content = TextAreaField('内容', validators=[DataRequired()])
-    due_date = StringField('截止日期', validators=[], render_kw={'type': 'datetime-local'})
+    due_date = DateTimeLocalField('截止日期', format='%Y-%m-%dT%H:%M', validators=[])
     submit = SubmitField('保存')
-
-    def validate_due_date(self, due_date):
-        """验证截止日期是否有效"""
-        if due_date.data:
-            try:
-                # 解析输入的日期时间字符串
-                parsed_date = datetime.strptime(due_date.data, '%Y-%m-%dT%H:%M')
-                if parsed_date < datetime.utcnow():
-                    raise ValidationError('截止日期不能早于当前时间。')
-            except ValueError:
-                raise ValidationError('请输入有效的日期时间格式 (YYYY-MM-DD HH:MM)。')
