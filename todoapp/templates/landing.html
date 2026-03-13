@@ -1,54 +1,77 @@
 {% extends "base.html" %}
 
-{% block title %}欢迎使用TodoList{% endblock %}
+{% block title %}欢迎使用{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row align-items-center">
-        <div class="col-md-6">
-            <h1 class="display-4 fw-bold">TodoList</h1>
-            <p class="lead mt-4">
-                一个简单、高效的任务管理工具，帮助您组织和跟踪日常工作、学习和生活中的各种任务。
-            </p>
-            <div class="mt-5">
-                <h3>主要功能</h3>
-                <ul class="list-group list-group-flush mt-3">
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="bi bi-check-circle text-success me-3"></i>
-                        <span>创建、编辑和删除任务</span>
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="bi bi-clock text-primary me-3"></i>
-                        <span>设置任务截止日期</span>
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="bi bi-flag text-warning me-3"></i>
-                        <span>跟踪任务状态（待办、进行中、已完成）</span>
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="bi bi-stats text-info me-3"></i>
-                        <span>查看任务统计信息</span>
-                    </li>
-                    <li class="list-group-item d-flex align-items-center">
-                        <i class="bi bi-lock text-secondary me-3"></i>
-                        <span>安全的用户认证系统</span>
-                    </li>
-                </ul>
-            </div>
-            <div class="mt-5">
-                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">立即注册</a>
-                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">已有账号？登录</a>
+<!-- Hero Section -->
+<div class="px-4 py-5 my-5 text-center">
+    <i class="bi bi-check2-square text-primary" style="font-size: 4rem;"></i>
+    <h1 class="display-4 fw-bold">TodoList</h1>
+    <div class="col-lg-6 mx-auto">
+        <p class="lead mb-4">
+            简单、高效的个人任务管理工具。<br>
+            帮助您更好地组织日常任务，提高工作效率。
+        </p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                <i class="bi bi-person-plus"></i> 立即注册
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg px-4">
+                <i class="bi bi-box-arrow-in-right"></i> 登录
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container px-4 py-5">
+    <h2 class="pb-2 border-bottom text-center mb-5">功能特点</h2>
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 
+                                d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-list-check fs-4"></i>
+                    </div>
+                    <h3 class="fs-4">任务管理</h3>
+                    <p class="text-muted">轻松创建、编辑和管理您的任务，支持设置截止日期和优先级。</p>
+                </div>
             </div>
         </div>
-        <div class="col-md-6 mt-5 mt-md-0">
-            <!-- 这里可以添加一个图片或图表 -->
-            <div class="card shadow-lg">
-                <div class="card-body p-5">
-                    <h3 class="text-center mb-4">开始管理您的任务</h3>
-                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20task%20management%20dashboard%20with%20tasks%2C%20calendar%2C%20and%20statistics&image_size=landscape_16_9" alt="任务管理界面" class="img-fluid rounded">
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3 
+                                d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-graph-up fs-4"></i>
+                    </div>
+                    <h3 class="fs-4">进度跟踪</h3>
+                    <p class="text-muted">实时查看任务完成情况，直观了解工作进度。</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-info bg-gradient text-white rounded-circle mb-3 
+                                d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-shield-check fs-4"></i>
+                    </div>
+                    <h3 class="fs-4">安全可靠</h3>
+                    <p class="text-muted">采用安全的密码加密技术，保护您的数据安全。</p>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+<!-- CTA Section -->
+<div class="bg-light p-5 rounded-lg m-3 text-center">
+    <h2 class="mb-4">准备好开始了吗？</h2>
+    <p class="lead mb-4">立即注册，开始高效管理您的任务。</p>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+        <i class="bi bi-rocket"></i> 免费注册
+    </a>
 </div>
 {% endblock %}

@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}注册{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="bi bi-person-plus"></i> 用户注册</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="" id="registerForm" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.username.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            {{ form.username(class="form-control" + (' is-invalid' if form.username.errors else ''), 
+                                           placeholder="请输入用户名 (2-20个字符)", autocomplete="username") }}
+                        </div>
+                        <div class="form-text">用户名必须以字母开头，只能包含字母、数字和下划线</div>
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.username.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            {{ form.email(class="form-control" + (' is-invalid' if form.email.errors else ''), 
+                                        placeholder="请输入邮箱地址", autocomplete="email") }}
+                        </div>
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.email.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            {{ form.password(class="form-control" + (' is-invalid' if form.password.errors else ''), 
+                                           placeholder="请输入密码", autocomplete="new-password") }}
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            密码要求：至少8位，包含大小写字母、数字和特殊字符
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- 密码强度指示器 -->
+                        <div class="mt-2">
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar" id="passwordStrength" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted" id="passwordStrengthText">密码强度</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.confirm_password.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                            {{ form.confirm_password(class="form-control" + (' is-invalid' if form.confirm_password.errors else ''), 
+                                                   placeholder="请再次输入密码", autocomplete="new-password") }}
+                        </div>
+                        {% if form.confirm_password.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.confirm_password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-success btn-lg") }}
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <small class="text-muted">
+                    已有账号？ <a href="{{ url_for('auth.login') }}" class="text-decoration-none">立即登录</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 密码可见性切换
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.querySelector('input[name="password"]');
+    
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        const icon = this.querySelector('i');
+        icon.classList.toggle('bi-eye');
+        icon.classList.toggle('bi-eye-slash');
+    });
+    
+    // 密码强度检测
+    const passwordStrength = document.getElementById('passwordStrength');
+    const passwordStrengthText = document.getElementById('passwordStrengthText');
+    
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        let strength = 0;
+        
+        if (password.length >= 8) strength += 20;
+        if (/[a-z]/.test(password)) strength += 20;
+        if (/[A-Z]/.test(password)) strength += 20;
+        if (/\d/.test(password)) strength += 20;
+        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength += 20;
+        
+        passwordStrength.style.width = strength + '%';
+        
+        if (strength <= 20) {
+            passwordStrength.className = 'progress-bar bg-danger';
+            passwordStrengthText.textContent = '密码强度: 弱';
+        } else if (strength <= 60) {
+            passwordStrength.className = 'progress-bar bg-warning';
+            passwordStrengthText.textContent = '密码强度: 中';
+        } else if (strength <= 80) {
+            passwordStrength.className = 'progress-bar bg-info';
+            passwordStrengthText.textContent = '密码强度: 良';
+        } else {
+            passwordStrength.className = 'progress-bar bg-success';
+            passwordStrengthText.textContent = '密码强度: 强';
+        }
+    });
+    
+    // 实时验证用户名是否可用
+    const usernameInput = document.querySelector('input[name="username"]');
+    let usernameTimeout;
+    
+    usernameInput.addEventListener('blur', function() {
+        const username = this.value.trim();
+        if (username.length < 2) return;
+        
+        clearTimeout(usernameTimeout);
+        usernameTimeout = setTimeout(() => {
+            fetch('/auth/api/check-username', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+                },
+                body: JSON.stringify({ username: username })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.available) {
+                    usernameInput.classList.add('is-invalid');
+                    let feedback = usernameInput.parentNode.nextElementSibling;
+                    if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                        feedback = document.createElement('div');
+                        feedback.className = 'invalid-feedback d-block';
+                        usernameInput.parentNode.parentNode.appendChild(feedback);
+                    }
+                    feedback.textContent = '该用户名已被使用';
+                } else {
+                    usernameInput.classList.remove('is-invalid');
+                    usernameInput.classList.add('is-valid');
+                }
+            });
+        }, 500);
+    });
+    
+    // 实时验证邮箱是否可用
+    const emailInput = document.querySelector('input[name="email"]');
+    let emailTimeout;
+    
+    emailInput.addEventListener('blur', function() {
+        const email = this.value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) return;
+        
+        clearTimeout(emailTimeout);
+        emailTimeout = setTimeout(() => {
+            fetch('/auth/api/check-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+                },
+                body: JSON.stringify({ email: email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.available) {
+                    emailInput.classList.add('is-invalid');
+                    let feedback = emailInput.parentNode.nextElementSibling;
+                    if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                        feedback = document.createElement('div');
+                        feedback.className = 'invalid-feedback d-block';
+                        emailInput.parentNode.parentNode.appendChild(feedback);
+                    }
+                    feedback.textContent = '该邮箱已被注册';
+                } else {
+                    emailInput.classList.remove('is-invalid');
+                    emailInput.classList.add('is-valid');
+                }
+            });
+        }, 500);
+    });
+});
+</script>
+{% endblock %}
