@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ task.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-{{ 
+                'info' if task.status == 'pending' else 
+                'warning' if task.status == 'in_progress' else 'success' 
+            }} text-white">
+                <h3 class="card-title mb-0">{{ task.title }}</h3>
+            </div>
+            <div class="card-body">
+                <p class="card-text lead">{{ task.content }}</p>
+                
+                <div class="mt-4">
+                    <h6>任务信息</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>状态:</strong>
+                            <span class="badge bg-{{ 
+                                'info' if task.status == 'pending' else 
+                                'warning' if task.status == 'in_progress' else 'success' 
+                            }} ms-2">{{ task.status }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>创建时间:</strong> {{ task.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </li>
+                        {% if task.due_date %}
+                            <li class="list-group-item">
+                                <strong>截止时间:</strong> 
+                                <span class="text-{{ 'danger' if task.due_date < current_time else 'secondary' }}">
+                                    {{ task.due_date.strftime('%Y-%m-%d %H:%M:%S') }}
+                                </span>
+                            </li>
+                        {% endif %}
+                        {% if task.completed_at %}
+                            <li class="list-group-item">
+                                <strong>完成时间:</strong> {{ task.completed_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                            </li>
+                        {% endif %}
+                        <li class="list-group-item">
+                            <strong>创建者:</strong> {{ task.author.username }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <a href="{{ url_for('update_task', task_id=task.id) }}" class="btn btn-primary me-2">编辑任务</a>
+                        <a href="{{ url_for('home') }}" class="btn btn-secondary">返回列表</a>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            删除任务
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">确认删除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                您确定要删除任务 "{{ task.title }}" 吗？此操作无法撤销。
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST">
+                    <button type="submit" class="btn btn-danger">删除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

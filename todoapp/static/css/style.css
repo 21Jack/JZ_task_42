@@ -1,0 +1,103 @@
+/* 自定义样式 */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* 任务卡片样式 */
+.task-list .card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.task-list .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 统计卡片样式 */
+.info-box {
+    background-color: #e9ecef;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.status-card {
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 着陆页样式 */
+.landing-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    color: white;
+}
+
+/* 表单样式优化 */
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* 按钮样式优化 */
+.btn {
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 卡片样式优化 */
+.card {
+    border-radius: 8px;
+}
+
+/* 响应式设计优化 */
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2.5rem;
+    }
+    
+    .task-list .card-body {
+        padding: 1rem;
+    }
+}
+
+/* 页脚样式 */
+footer {
+    border-top: 1px solid #e9ecef;
+    margin-top: 50px;
+}
+
+/* 任务状态标签样式 */
+.badge {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 50px;
+}
+
+/* 日期样式 */
+.text-danger {
+    font-weight: 500;
+}
+
+/* 头像样式 */
+.avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}

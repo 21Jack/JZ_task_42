@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}我的任务{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>我的任务</h2>
+            <a href="{{ url_for('new_task') }}" class="btn btn-primary">
+                <i class="bi bi-plus"></i> 新建任务
+            </a>
+        </div>
+
+        <!-- 任务统计 -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">待办任务</h5>
+                        <p class="card-text display-4">
+                            {{ tasks|selectattr('status', 'equalto', 'pending')|list|length }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">进行中</h5>
+                        <p class="card-text display-4">
+                            {{ tasks|selectattr('status', 'equalto', 'in_progress')|list|length }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">已完成</h5>
+                        <p class="card-text display-4">
+                            {{ tasks|selectattr('status', 'equalto', 'completed')|list|length }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 任务列表 -->
+        {% if tasks %}
+            <div class="task-list">
+                {% for task in tasks %}
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-header bg-{{ 
+                            'info' if task.status == 'pending' else 
+                            'warning' if task.status == 'in_progress' else 'success' 
+                        }} text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">{{ task.title }}</h5>
+                                <span class="badge bg-light text-dark">
+                                    {{ task.status }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ task.content[:150] }}{% if task.content|length > 150 %}...{% endif %}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    创建于: {{ task.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                </small>
+                                {% if task.due_date %}
+                                    <small class="text-{{ 'danger' if task.due_date < current_time else 'secondary' }}">
+                                        截止于: {{ task.due_date.strftime('%Y-%m-%d %H:%M') }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light">
+                            <div class="d-flex justify-content-between">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('task', task_id=task.id) }}" class="btn btn-sm btn-primary">查看详情</a>
+                                    <a href="{{ url_for('update_task', task_id=task.id) }}" class="btn btn-sm btn-secondary">编辑</a>
+                                </div>
+                                <div class="btn-group" role="group">
+                                    {% if task.status == 'pending' %}
+                                        <a href="{{ url_for('update_task_status', task_id=task.id, status='in_progress') }}" class="btn btn-sm btn-warning">开始</a>
+                                    {% elif task.status == 'in_progress' %}
+                                        <a href="{{ url_for('update_task_status', task_id=task.id, status='completed') }}" class="btn btn-sm btn-success">完成</a>
+                                        <a href="{{ url_for('update_task_status', task_id=task.id, status='pending') }}" class="btn btn-sm btn-info">重置</a>
+                                    {% else %}
+                                        <a href="{{ url_for('update_task_status', task_id=task.id, status='pending') }}" class="btn btn-sm btn-info">重新开始</a>
+                                    {% endif %}
+                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ task.id }}">删除</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 删除确认模态框 -->
+                    <div class="modal fade" id="deleteModal{{ task.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ task.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel{{ task.id }}">确认删除</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    您确定要删除任务 "{{ task.title }}" 吗？此操作无法撤销。
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                    <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST">
+                                        <button type="submit" class="btn btn-danger">删除</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <div class="alert alert-info" role="alert">
+                    <h4 class="alert-heading">还没有任务</h4>
+                    <p>点击上方的"新建任务"按钮开始创建您的第一个任务吧！</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 设置当前时间用于截止日期判断
+    window.current_time = new Date();
+</script>
+{% endblock %}
