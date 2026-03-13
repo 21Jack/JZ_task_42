@@ -7,3 +7,4 @@ WTForms
 python-dotenv
 mysql-connector-python
 passlib
+email-validator
