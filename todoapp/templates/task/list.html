@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}我的任务{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <!-- 页面标题和操作按钮 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-list-task"></i> 我的任务</h2>
+            <a href="{{ url_for('task.new_task') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> 新建任务
+            </a>
+        </div>
+
+        <!-- 任务统计卡片 -->
+        <div class="row mb-4">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">总任务</h5>
+                        <p class="card-text display-5">{{ stats.total }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card bg-info text-white h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">待处理</h5>
+                        <p class="card-text display-5">{{ stats.pending }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card bg-warning text-white h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">进行中</h5>
+                        <p class="card-text display-5">{{ stats.in_progress }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">已完成</h5>
+                        <p class="card-text display-5">{{ stats.completed }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 状态筛选 -->
+        <div class="mb-3">
+            <div class="btn-group" role="group">
+                <a href="{{ url_for('task.list_tasks') }}" 
+                   class="btn btn-outline-primary {{ 'active' if not current_status }}">全部</a>
+                <a href="{{ url_for('task.list_tasks', status='pending') }}" 
+                   class="btn btn-outline-info {{ 'active' if current_status == 'pending' }}">待处理</a>
+                <a href="{{ url_for('task.list_tasks', status='in_progress') }}" 
+                   class="btn btn-outline-warning {{ 'active' if current_status == 'in_progress' }}">进行中</a>
+                <a href="{{ url_for('task.list_tasks', status='completed') }}" 
+                   class="btn btn-outline-success {{ 'active' if current_status == 'completed' }}">已完成</a>
+            </div>
+        </div>
+
+        <!-- 任务列表 -->
+        {% if tasks %}
+            <div class="task-list">
+                {% for task in tasks %}
+                    <div class="card mb-3 shadow-sm task-card" data-task-id="{{ task.id }}">
+                        <div class="card-header bg-{{ task.get_status_color() }} text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">{{ task.title }}</h5>
+                                <span class="badge bg-light text-dark status-badge">
+                                    {{ task.get_status_display() }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ task.content[:200] }}{% if task.content|length > 200 %}...{% endif %}</p>
+                            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> 
+                                    创建于: {{ task.created_at|datetime }}
+                                </small>
+                                {% if task.due_date %}
+                                    <small class="text-{{ 'danger' if task.is_overdue(current_time) else 'secondary' }}">
+                                        <i class="bi bi-clock"></i> 
+                                        截止于: {{ task.due_date|datetime }}
+                                        {% if task.is_overdue(current_time) %}
+                                            <span class="badge bg-danger">已逾期</span>
+                                        {% endif %}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('task.view_task', task_id=task.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> 查看
+                                    </a>
+                                    <a href="{{ url_for('task.edit_task', task_id=task.id) }}" 
+                                       class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i> 编辑
+                                    </a>
+                                </div>
+                                <div class="btn-group" role="group">
+                                    {% if task.status == 'pending' %}
+                                        <button type="button" class="btn btn-sm btn-warning update-status" 
+                                                data-status="in_progress">
+                                            <i class="bi bi-play"></i> 开始
+                                        </button>
+                                    {% elif task.status == 'in_progress' %}
+                                        <button type="button" class="btn btn-sm btn-success update-status" 
+                                                data-status="completed">
+                                            <i class="bi bi-check-lg"></i> 完成
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-info update-status" 
+                                                data-status="pending">
+                                            <i class="bi bi-arrow-counterclockwise"></i> 重置
+                                        </button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-sm btn-info update-status" 
+                                                data-status="pending">
+                                            <i class="bi bi-arrow-counterclockwise"></i> 重新开始
+                                        </button>
+                                    {% endif %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal{{ task.id }}">
+                                        <i class="bi bi-trash"></i> 删除
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 删除确认模态框 -->
+                    <div class="modal fade" id="deleteModal{{ task.id }}" tabindex="-1" 
+                         aria-labelledby="deleteModalLabel{{ task.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel{{ task.id }}">
+                                        <i class="bi bi-exclamation-triangle text-warning"></i> 确认删除
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    您确定要删除任务 <strong>"{{ task.title }}"</strong> 吗？<br>
+                                    <span class="text-danger">此操作无法撤销。</span>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                    <form action="{{ url_for('task.delete_task', task_id=task.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="bi bi-trash"></i> 删除
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- 分页 -->
+            {% if pagination.pages > 1 %}
+            <nav aria-label="任务分页" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if pagination.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('task.list_tasks', page=pagination.prev_num, status=current_status) }}">
+                                <i class="bi bi-chevron-left"></i> 上一页
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-left"></i> 上一页</span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == pagination.page %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('task.list_tasks', page=page_num, status=current_status) }}">
+                                        {{ page_num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('task.list_tasks', page=pagination.next_num, status=current_status) }}">
+                                下一页 <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">下一页 <i class="bi bi-chevron-right"></i></span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <div class="alert alert-info" role="alert">
+                    <h4 class="alert-heading"><i class="bi bi-inbox"></i> 还没有任务</h4>
+                    <p>点击上方的"新建任务"按钮开始创建您的第一个任务吧！</p>
+                    <hr>
+                    <a href="{{ url_for('task.new_task') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> 创建任务
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 状态更新按钮事件
+    document.querySelectorAll('.update-status').forEach(button => {
+        button.addEventListener('click', function() {
+            const taskCard = this.closest('.task-card');
+            const taskId = taskCard.dataset.taskId;
+            const newStatus = this.dataset.status;
+            
+            // 发送AJAX请求
+            fetch(`/task/${taskId}/status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 显示成功消息
+                    showToast('任务状态已更新', 'success');
+                    // 刷新页面以显示更新后的状态
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    showToast(data.error || '更新失败', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('更新失败，请重试', 'danger');
+            });
+        });
+    });
+    
+    // Toast消息函数
+    function showToast(message, type = 'info') {
+        const toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        
+        toastContainer.innerHTML = `
+            <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(toastContainer);
+        const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'));
+        toast.show();
+        
+        setTimeout(() => toastContainer.remove(), 5000);
+    }
+});
+</script>
+{% endblock %}

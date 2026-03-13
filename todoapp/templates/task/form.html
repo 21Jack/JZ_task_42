@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-{{ 'pencil-square' if '编辑' in legend else 'plus-circle' }}"></i> {{ legend }}</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="" id="taskForm" novalidate>
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control" + (' is-invalid' if form.title.errors else ''), 
+                                    placeholder="请输入任务标题 (1-100个字符)", maxlength="100") }}
+                        <div class="form-text">
+                            <span id="titleCount">{{ form.title.data|length if form.title.data else 0 }}</span>/100 字符
+                        </div>
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.title.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.content.label(class="form-label") }}
+                        {{ form.content(class="form-control" + (' is-invalid' if form.content.errors else ''), 
+                                      rows="6", placeholder="请输入任务内容 (支持Markdown格式)", maxlength="5000") }}
+                        <div class="form-text">
+                            <span id="contentCount">{{ form.content.data|length if form.content.data else 0 }}</span>/5000 字符
+                        </div>
+                        {% if form.content.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.content.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.due_date.label(class="form-label") }}
+                        {{ form.due_date(class="form-control" + (' is-invalid' if form.due_date.errors else '')) }}
+                        <div class="form-text">可选，设置任务的截止日期和时间</div>
+                        {% if form.due_date.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.due_date.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('task.list_tasks') }}" class="btn btn-outline-secondary">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Markdown提示 -->
+        <div class="alert alert-info mt-3" role="alert">
+            <h6><i class="bi bi-markdown"></i> Markdown 格式支持</h6>
+            <small>
+                任务内容支持 Markdown 格式：<br>
+                <code>**粗体**</code> <code>*斜体*</code> <code># 标题</code> <code>- 列表</code>
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 字符计数
+    const titleInput = document.querySelector('input[name="title"]');
+    const contentInput = document.querySelector('textarea[name="content"]');
+    const titleCount = document.getElementById('titleCount');
+    const contentCount = document.getElementById('contentCount');
+    
+    titleInput.addEventListener('input', function() {
+        titleCount.textContent = this.value.length;
+    });
+    
+    contentInput.addEventListener('input', function() {
+        contentCount.textContent = this.value.length;
+    });
+    
+    // 设置日期时间选择器的最小值为当前时间
+    const dueDateInput = document.querySelector('input[name="due_date"]');
+    if (dueDateInput && !dueDateInput.value) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        dueDateInput.min = now.toISOString().slice(0, 16);
+    }
+    
+    // 表单验证
+    const form = document.getElementById('taskForm');
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // 标题验证
+        if (!titleInput.value.trim()) {
+            titleInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            titleInput.classList.remove('is-invalid');
+        }
+        
+        // 内容验证
+        if (!contentInput.value.trim()) {
+            contentInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            contentInput.classList.remove('is-invalid');
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

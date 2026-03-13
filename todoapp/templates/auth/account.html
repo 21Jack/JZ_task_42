@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}个人资料{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <!-- 用户信息卡片 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-circle"></i> 用户信息</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px; font-size: 32px;">
+                        {{ current_user.username[0].upper() }}
+                    </div>
+                </div>
+                <h5 class="card-title">{{ current_user.username }}</h5>
+                <p class="card-text text-muted">
+                    <i class="bi bi-envelope"></i> {{ current_user.email }}
+                </p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        注册时间: {{ current_user.created_at|datetime('%Y-%m-%d') }}
+                    </small>
+                </p>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="bi bi-key"></i> 修改密码
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <!-- 任务统计 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> 任务统计</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="p-3 bg-light rounded">
+                            <h3 class="text-primary mb-1">{{ stats.total }}</h3>
+                            <small class="text-muted">总任务</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="p-3 bg-light rounded">
+                            <h3 class="text-info mb-1">{{ stats.pending }}</h3>
+                            <small class="text-muted">待处理</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="p-3 bg-light rounded">
+                            <h3 class="text-warning mb-1">{{ stats.in_progress }}</h3>
+                            <small class="text-muted">进行中</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="p-3 bg-light rounded">
+                            <h3 class="text-success mb-1">{{ stats.completed }}</h3>
+                            <small class="text-muted">已完成</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 完成率进度条 -->
+                {% if stats.total > 0 %}
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>完成率</span>
+                        <span>{{ (stats.completed / stats.total * 100)|round(1) }}%</span>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ (stats.completed / stats.total * 100)|round }}%">
+                            {{ (stats.completed / stats.total * 100)|round }}%
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- 快捷操作 -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> 快捷操作</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2 d-md-flex">
+                    <a href="{{ url_for('task.new_task') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> 新建任务
+                    </a>
+                    <a href="{{ url_for('task.list_tasks') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-list-task"></i> 查看任务
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

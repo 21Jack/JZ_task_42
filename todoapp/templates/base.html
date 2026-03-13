@@ -3,50 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TodoList - 您的个人任务管理工具">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}{% endblock %} - TodoList</title>
+    
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <!-- 自定义样式 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
     <!-- 导航栏 -->
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
             <div class="container">
-                <a class="navbar-brand" href="{{ url_for('home') }}">TodoList</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand fw-bold" href="{{ url_for('main.home') }}">
+                    <i class="bi bi-check2-square"></i> TodoList
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
                         {% if current_user.is_authenticated %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('home') }}">我的任务</a>
+                                <a class="nav-link {{ 'active' if request.endpoint == 'main.home' }}" 
+                                   href="{{ url_for('main.home') }}">
+                                    <i class="bi bi-house"></i> 首页
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('new_task') }}">新建任务</a>
+                                <a class="nav-link {{ 'active' if request.endpoint.startswith('task.') }}" 
+                                   href="{{ url_for('task.list_tasks') }}">
+                                    <i class="bi bi-list-task"></i> 我的任务
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ 'active' if request.endpoint == 'task.new_task' }}" 
+                                   href="{{ url_for('task.new_task') }}">
+                                    <i class="bi bi-plus-lg"></i> 新建任务
+                                </a>
                             </li>
                         {% endif %}
                     </ul>
+                    
+                    <!-- 搜索框 -->
+                    {% if current_user.is_authenticated %}
+                    <form class="d-flex me-3" action="{{ url_for('task.search') }}" method="GET">
+                        <div class="input-group">
+                            <input class="form-control form-control-sm" type="search" name="q" 
+                                   placeholder="搜索任务..." aria-label="搜索" required>
+                            <button class="btn btn-outline-light btn-sm" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    {% endif %}
+                    
                     <ul class="navbar-nav">
                         {% if current_user.is_authenticated %}
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    {{ current_user.username }}
+                                <a class="nav-link dropdown-toggle" href="#" role="button" 
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle"></i> {{ current_user.username }}
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="{{ url_for('account') }}">个人资料</a></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('auth.account') }}">
+                                            <i class="bi bi-person"></i> 个人资料
+                                        </a>
+                                    </li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('logout') }}">注销</a></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                            <i class="bi bi-box-arrow-right"></i> 注销
+                                        </a>
+                                    </li>
                                 </ul>
                             </li>
                         {% else %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('login') }}">登录</a>
+                                <a class="nav-link {{ 'active' if request.endpoint == 'auth.login' }}" 
+                                   href="{{ url_for('auth.login') }}">
+                                    <i class="bi bi-box-arrow-in-right"></i> 登录
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('register') }}">注册</a>
+                                <a class="nav-link {{ 'active' if request.endpoint == 'auth.register' }}" 
+                                   href="{{ url_for('auth.register') }}">
+                                    <i class="bi bi-person-plus"></i> 注册
+                                </a>
                             </li>
                         {% endif %}
                     </ul>
@@ -60,7 +111,8 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                        <i class="bi bi-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'warning' else 'info-circle' if category == 'info' else 'x-circle' }}"></i>
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
@@ -70,18 +122,62 @@
     </div>
 
     <!-- 主要内容区域 -->
-    <main class="container mt-4 mb-5">
+    <main class="container mt-4 mb-5 flex-grow-1">
         {% block content %}{% endblock %}
     </main>
 
     <!-- 页脚 -->
-    <footer class="bg-light py-3 mt-auto">
-        <div class="container text-center">
-            <p class="mb-0">© 2024 TodoList - 您的个人任务管理工具</p>
+    <footer class="bg-light py-4 mt-auto border-top">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">
+                        <i class="bi bi-check2-square"></i> TodoList - 您的个人任务管理工具
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-muted">
+                        &copy; {{ now().year if now else '2024' }} All rights reserved.
+                    </small>
+                </div>
+            </div>
         </div>
     </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 全局JavaScript -->
+    <script>
+    // 自动关闭警告消息
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+        alerts.forEach(function(alert) {
+            setTimeout(function() {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 5000);
+        });
+    });
+    
+    // 全局CSRF Token获取函数
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+    
+    // 全局Fetch配置
+    async function fetchWithCsrf(url, options = {}) {
+        const defaultOptions = {
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        };
+        return fetch(url, { ...defaultOptions, ...options });
+    }
+    </script>
+    
+    {% block scripts %}{% endblock %}
 </body>
 </html>
